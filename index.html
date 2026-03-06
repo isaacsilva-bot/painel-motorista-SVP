@@ -3,65 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Operação</title>
+    <title>Painel do Motorista - SVP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
+        :root {
+            /* Tons de Laranja para o Tema */
+            --primary-orange: #ff6600; 
+            --dark-orange: #e65c00;
+            --light-orange: #fff5ed;
+            --success-green: #28a745;
+            --bg-gray: #f4f4f9;
+            --text-main: #333;
+        }
+
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: #f0f2f5; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-gray); 
             margin: 0; 
-            padding: 10px; 
+            padding: 15px; 
             display: flex; 
             justify-content: center; 
         }
 
         .container { 
             background: white; 
-            padding: 20px; 
+            padding: 25px; 
             border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
             width: 100%; 
-            max-width: 500px; /* Aumentado para dar mais palco à logo */
+            max-width: 480px; 
             text-align: center; 
         }
         
         .logo-wrapper {
             width: 100%;
-            margin: 10px 0 30px 0;
+            margin: 10px 0 25px 0;
             display: flex;
             justify-content: center;
         }
 
+        /* Logo configurada para tamanho máximo e nitidez */
         .logo-topo {
-            width: 100%; /* Ocupa 100% da largura do card */
-            max-width: 450px; 
+            width: 100%; 
+            max-width: 420px; 
             height: auto;
             display: block;
-            image-rendering: auto;
+            image-rendering: -webkit-optimize-contrast;
         }
 
-        h2 { color: #1a73e8; margin-bottom: 20px; }
-        .search-box { display: flex; flex-direction: column; gap: 15px; text-align: left; }
-        input { padding: 18px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; }
-        button { padding: 18px; background-color: #1a73e8; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; }
-        
-        .result-card { border-left: 6px solid #34a853; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f9f9f9; text-align: left; }
-        .label { font-size: 12px; color: #70757a; font-weight: bold; display: block; }
-        .value { font-size: 17px; color: #202124; margin-bottom: 10px; display: block; }
+        h2 { 
+            color: var(--text-main); 
+            margin-bottom: 25px;
+            font-size: 22px;
+            border-bottom: 3px solid var(--primary-orange);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .search-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            text-align: left; 
+        }
+
+        label {
+            font-weight: bold;
+            color: var(--primary-orange);
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        input { 
+            padding: 18px; 
+            border: 2px solid #ddd; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { 
+            border-color: var(--primary-orange); 
+            box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
+        }
+
+        button { 
+            padding: 18px; 
+            background-color: var(--primary-orange); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 20px; 
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: var(--dark-orange); }
+        button:active { transform: scale(0.98); }
+
+        /* Estilo dos Resultados */
+        .result-card { 
+            border: 1px solid #eee;
+            border-left: 6px solid var(--primary-orange); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-top: 20px; 
+            background: #fff; 
+            text-align: left;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .label { 
+            font-size: 11px; 
+            color: #888; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            display: block; 
+            margin-bottom: 3px;
+        }
+
+        .value { 
+            font-size: 17px; 
+            color: #222; 
+            margin-bottom: 12px; 
+            display: block; 
+            font-weight: 500;
+        }
+
+        .destaque {
+            color: var(--primary-orange);
+            font-weight: bold;
+            font-size: 19px;
+        }
+
+        .error { 
+            color: #d93025; 
+            background: #fff0f0; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-top: 20px; 
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="logo-wrapper">
-        <img src="empresa.jpg" alt="Logo" class="logo-topo">
+        <img src="empresa.jpg" alt="Logo SVP" class="logo-topo">
     </div>
 
     <h2>Painel do Motorista</h2>
     
     <div class="search-box">
-        <input type="text" id="idInput" placeholder="Digite seu ID" onkeypress="if(event.key === 'Enter') buscar()">
-        <button onclick="buscar()">CONSULTAR</button>
+        <label>IDENTIFICAÇÃO</label>
+        <input type="text" id="idInput" placeholder="Digite seu ID ou Nome" onkeypress="if(event.key === 'Enter') buscar()">
+        <button onclick="buscar()">CONSULTAR ROTA</button>
     </div>
 
     <div id="resultado"></div>
@@ -69,12 +169,17 @@
 
 <script>
     let csvData = [];
+
+    // Carregamento do arquivo CSV
     window.onload = function() {
         Papa.parse("dados.csv", {
             download: true,
             header: false,
             skipEmptyLines: true,
-            complete: function(results) { csvData = results.data; }
+            complete: function(results) { 
+                csvData = results.data; 
+                console.log("Sistema Pronto.");
+            }
         });
     };
 
@@ -82,8 +187,10 @@
         const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
         const lista = document.getElementById('resultado');
         lista.innerHTML = "";
+        
         if (!idBuscado) return;
 
+        // Filtra os dados (ID na Coluna A / index 0)
         const filtrados = csvData.filter((linha, index) => {
             return index > 0 && linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
         });
@@ -92,15 +199,27 @@
             filtrados.forEach(linha => {
                 lista.innerHTML += `
                     <div class="result-card">
-                        <span class="label">ROTA</span><span class="value">${linha[1] || '-'}</span>
-                        <span class="label">LOJA</span><span class="value">${linha[3] || '-'}</span>
-                        <span class="label">ENDEREÇO</span><span class="value">${linha[4] || '-'}</span>
-                        <span class="label">HORÁRIO</span><span class="value"><strong>${linha[6] || '-'}</strong></span>
+                        <span class="label">📍 Rota Atribuída</span>
+                        <span class="value">${linha[1] || '-'}</span>
+                        
+                        <span class="label">🏢 Nome da Loja</span>
+                        <span class="value">${linha[3] || '-'}</span>
+                        
+                        <span class="label">🏠 Endereço</span>
+                        <span class="value">${linha[4] || '-'}</span>
+                        
+                        <span class="label">⏰ Previsão de Visita</span>
+                        <span class="value destaque">${linha[6] || '-'}</span>
+                        
+                        <hr style="border:0; border-top: 1px solid #eee; margin: 10px 0;">
+                        
+                        <span class="label">🕒 Funcionamento</span>
+                        <span class="value" style="font-size:14px;">${linha[5] || '-'}</span>
                     </div>
                 `;
             });
         } else {
-            lista.innerHTML = "<p style='color:red; margin-top:20px;'>ID não encontrado.</p>";
+            lista.innerHTML = "<div class='error'>ID não encontrado no banco de dados.</div>";
         }
     }
 </script>
