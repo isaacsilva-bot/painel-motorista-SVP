@@ -6,87 +6,85 @@
     <title>Consulta de Operação</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        h2 { color: #2c3e50; text-align: center; margin-top: 0; }
-        .search-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
-        input { padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.3s; }
-        input:focus { border-color: #3498db; }
-        button { padding: 15px; background-color: #2ecc71; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background-color: #27ae60; }
-        .result-card { border-left: 5px solid #3498db; padding: 15px; border-radius: 4px; margin-top: 15px; background: #f9f9f9; line-height: 1.6; }
-        .label { font-weight: bold; color: #7f8c8d; font-size: 12px; text-transform: uppercase; display: block; }
-        .value { color: #2c3e50; font-size: 16px; margin-bottom: 8px; display: block; }
-        .error { color: #e74c3c; text-align: center; font-weight: bold; margin-top: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
+        .search-box { display: flex; flex-direction: column; gap: 12px; }
+        input { padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #1a73e8; outline: none; }
+        button { padding: 15px; background-color: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; }
+        button:hover { background-color: #1557b0; }
+        .result-card { border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; margin-top: 15px; background: #fff; position: relative; overflow: hidden; }
+        .result-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #34a853; }
+        .item { margin-bottom: 10px; }
+        .label { font-size: 11px; color: #70757a; text-transform: uppercase; font-weight: bold; display: block; }
+        .value { font-size: 15px; color: #202124; font-weight: 500; }
+        .error { color: #d93025; text-align: center; margin-top: 20px; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Painel do Funcionário</h2>
+    <h2>Painel do Motorista</h2>
     <div class="search-box">
-        <input type="text" id="motoristaID" placeholder="Digite seu ID">
-        <button onclick="buscarRota()">Ver Minha Rota</button>
+        <input type="text" id="idInput" placeholder="Digite seu ID (ex: 123)">
+        <button onclick="buscar()">Consultar Rota</button>
     </div>
     <div id="resultado"></div>
 </div>
 
 <script>
-    let dadosOperacao = [];
+    let csvData = [];
 
-    window.onload = function() {
-        // O PapaParse agora vai tentar detectar automaticamente o separador (; ou ,)
+    // Função que carrega o arquivo
+    function carregarDados() {
         Papa.parse("dados.csv", {
             download: true,
-            header: false, // Mudamos para false para evitar erro com nomes de colunas
+            header: false, // Lemos como lista para não depender de nomes de colunas
             skipEmptyLines: true,
             complete: function(results) {
-                dadosOperacao = results.data;
-                console.log("Dados carregados:", dadosOperacao);
+                csvData = results.data;
+                console.log("Dados carregados com sucesso!");
+            },
+            error: function() {
+                document.getElementById('resultado').innerHTML = "<p class='error'>Erro ao carregar arquivo dados.csv</p>";
             }
         });
-    };
+    }
 
-    function buscarRota() {
-        const termoBusca = document.getElementById('motoristaID').value.trim().toLowerCase();
-        const divResultado = document.getElementById('resultado');
-        divResultado.innerHTML = "";
+    function buscar() {
+        const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
+        const lista = document.getElementById('resultado');
+        lista.innerHTML = "";
 
-        if (!termoBusca) {
-            alert("Por favor, digite seu ID");
-            return;
-        }
+        if (!idBuscado) return;
 
-        // Começamos do 1 para pular o cabeçalho da planilha
-        const filtrados = dadosOperacao.slice(1).filter(linha => {
-            return linha[0] && linha[0].toString().toLowerCase() === termoBusca;
+        // Filtra os dados (Coluna 0 é o ID)
+        // Usamos .filter para caso o ID tenha mais de uma entrega/loja
+        const resultados = csvData.filter(linha => {
+            return linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
         });
 
-        if (filtrados.length > 0) {
-            filtrados.forEach(linha => {
-                divResultado.innerHTML += `
+        if (resultados.length > 0) {
+            resultados.forEach(linha => {
+                // Mapeamento das colunas baseado no que você passou:
+                // 0:ID, 1:ROTA, 2:Cod Cliente, 3:Loja, 4:Endereço, 5:Funcionamento, 6:Visita
+                lista.innerHTML += `
                     <div class="result-card">
-                        <span class="label">Rota</span>
-                        <span class="value">${linha[1] || '-'}</span>
-                        
-                        <span class="label">Loja / Ponto</span>
-                        <span class="value">${linha[3] || '-'}</span>
-                        
-                        <span class="label">Endereço</span>
-                        <span class="value">${linha[4] || '-'}</span>
-                        
-                        <span class="label">Horário de Visita</span>
-                        <span class="value">${linha[6] || '-'}</span>
-                        
-                        <hr style="border:0; border-top:1px solid #eee">
-                        <small>Funcionamento: ${linha[5] || '-'}</small>
+                        <div class="item"><span class="label">Rota</span><span class="value">${linha[1] || '---'}</span></div>
+                        <div class="item"><span class="label">Loja</span><span class="value">${linha[3] || '---'}</span></div>
+                        <div class="item"><span class="label">Endereço</span><span class="value">${linha[4] || '---'}</span></div>
+                        <div class="item"><span class="label">Horário Visita</span><span class="value">${linha[6] || '---'}</span></div>
+                        <div class="item"><span class="label">Funcionamento</span><span class="value">${linha[5] || '---'}</span></div>
                     </div>
                 `;
             });
         } else {
-            divResultado.innerHTML = '<p class="error">ID não encontrado. Verifique se digitou corretamente.</p>';
+            lista.innerHTML = "<p class='error'>Nenhuma informação para este ID.</p>";
         }
     }
+
+    window.onload = carregarDados;
 </script>
 
 </body>
