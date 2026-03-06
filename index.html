@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horário de Visita dos Pontos de Coleta no Sábado - SVP</title>
+    <title>Painel do Motorista - SVP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root {
-            /* Tons de Laranja para o Tema */
             --primary-orange: #ff6600; 
             --dark-orange: #e65c00;
-            --light-orange: #fff5ed;
-            --success-green: #28a745;
             --bg-gray: #f4f4f9;
             --text-main: #333;
         }
@@ -42,7 +39,6 @@
             justify-content: center;
         }
 
-        /* Logo configurada para tamanho máximo e nitidez */
         .logo-topo {
             width: 100%; 
             max-width: 420px; 
@@ -80,13 +76,9 @@
             border-radius: 12px; 
             font-size: 18px; 
             outline: none;
-            transition: 0.3s;
         }
 
-        input:focus { 
-            border-color: var(--primary-orange); 
-            box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
-        }
+        input:focus { border-color: var(--primary-orange); }
 
         button { 
             padding: 18px; 
@@ -98,13 +90,10 @@
             font-size: 20px; 
             font-weight: bold;
             text-transform: uppercase;
-            transition: 0.2s;
         }
 
         button:hover { background-color: var(--dark-orange); }
-        button:active { transform: scale(0.98); }
 
-        /* Estilo dos Resultados */
         .result-card { 
             border: 1px solid #eee;
             border-left: 6px solid var(--primary-orange); 
@@ -113,7 +102,6 @@
             margin-top: 20px; 
             background: #fff; 
             text-align: left;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
         .label { 
@@ -139,6 +127,15 @@
             font-size: 19px;
         }
 
+        /* Estilo específico para Observações */
+        .obs-box {
+            background-color: #fffaf5;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--primary-orange);
+            margin-top: 10px;
+        }
+
         .error { 
             color: #d93025; 
             background: #fff0f0; 
@@ -156,11 +153,11 @@
         <img src="empresa.jpg" alt="Logo SVP" class="logo-topo">
     </div>
 
-    <h2>Busca de Horário dos Pontos de Coleta</h2>
+    <h2>Verificação do Horário de Atendimento dos Pontos de Coleta</h2>
     
     <div class="search-box">
         <label>IDENTIFICAÇÃO</label>
-        <input type="text" id="idInput" placeholder="Digite seu ID pessoal" onkeypress="if(event.key === 'Enter') buscar()">
+        <input type="text" id="idInput" placeholder="Digite seu ID" onkeypress="if(event.key === 'Enter') buscar()">
         <button onclick="buscar()">CONSULTAR ROTA</button>
     </div>
 
@@ -170,16 +167,12 @@
 <script>
     let csvData = [];
 
-    // Carregamento do arquivo CSV
     window.onload = function() {
         Papa.parse("dados.csv", {
             download: true,
             header: false,
             skipEmptyLines: true,
-            complete: function(results) { 
-                csvData = results.data; 
-                console.log("Sistema Pronto.");
-            }
+            complete: function(results) { csvData = results.data; }
         });
     };
 
@@ -190,7 +183,6 @@
         
         if (!idBuscado) return;
 
-        // Filtra os dados (ID na Coluna A / index 0)
         const filtrados = csvData.filter((linha, index) => {
             return index > 0 && linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
         });
@@ -215,11 +207,16 @@
                         
                         <span class="label">🕒 Funcionamento</span>
                         <span class="value" style="font-size:14px;">${linha[5] || '-'}</span>
+
+                        <div class="obs-box">
+                            <span class="label" style="color:var(--primary-orange)">📝 Observações:</span>
+                            <span class="value" style="font-size:15px; margin-bottom:0;">${linha[7] || 'Nenhuma observação informada.'}</span>
+                        </div>
                     </div>
                 `;
             });
         } else {
-            lista.innerHTML = "<div class='error'>Você incluiu o ID errado ou não possui pontos de coleta a fechar neste sábado.</div>";
+            lista.innerHTML = "<div class='error'>ID não encontrado. Talves você não tenha pontos de coleta atribuído ou seu ID esteja errado.</div>";
         }
     }
 </script>
