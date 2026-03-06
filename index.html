@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel da Operação - Motoristas</title>
+    <title>Consulta de Operação - Motoristas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root {
             --primary-color: #1a73e8;
             --success-color: #34a853;
-            --bg-color: #f8f9fa;
+            --bg-color: #f0f2f5;
             --text-dark: #202124;
-            --text-light: #70757a;
+            --text-light: #5f6368;
             --border-color: #dadce0;
         }
 
@@ -19,7 +19,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background-color: var(--bg-color); 
             margin: 0; 
-            padding: 15px; 
+            padding: 10px; 
             display: flex; 
             justify-content: center; 
             align-items: flex-start;
@@ -28,59 +28,61 @@
 
         .container { 
             background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+            padding: 30px; 
+            border-radius: 24px; 
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12); 
             width: 100%; 
-            max-width: 420px; 
+            max-width: 440px; 
             text-align: center; 
             margin-top: 20px;
         }
         
-        /* Contêiner da Logo para centralização forçada */
+        /* Contêiner da Logo - Ajustado para ser maior */
         .logo-wrapper {
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
-            min-height: 50px; /* Espaço reserva se a imagem falhar */
+            margin-bottom: 25px;
         }
 
-        /* Estilo da Imagem da Logo */
+        /* Estilo da Imagem da Logo - MAIOR E NÍTIDA */
         .logo-topo {
-            max-width: 160px; /* Ajuste o tamanho da logo aqui */
+            width: 90%;            /* Ocupa 90% da largura interna do card */
+            max-width: 380px;      /* Limite máximo para não estourar no PC */
             height: auto;
             display: block;
+            image-rendering: -webkit-optimize-contrast; /* Melhora a nitidez em alguns navegadores */
+            image-rendering: crisp-edges;
         }
 
         h2 { 
             color: var(--text-dark); 
             margin-bottom: 25px; 
-            font-size: 22px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
             letter-spacing: -0.5px;
         }
 
         .search-box { 
             display: flex; 
             flex-direction: column; 
-            gap: 12px; 
+            gap: 15px; 
             text-align: left; 
         }
 
         label {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-light);
-            margin-left: 4px;
+            margin-left: 2px;
         }
 
         input { 
-            padding: 16px; 
+            padding: 18px; 
             border: 2px solid var(--border-color); 
-            border-radius: 12px; 
-            font-size: 16px; 
+            border-radius: 14px; 
+            font-size: 18px; 
             transition: all 0.2s ease;
             background-color: #fff;
             color: var(--text-dark);
@@ -89,74 +91,67 @@
         input:focus { 
             border-color: var(--primary-color); 
             outline: none;
-            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
         }
 
         button { 
-            padding: 16px; 
+            padding: 18px; 
             background-color: var(--primary-color); 
             color: white; 
             border: none; 
-            border-radius: 12px; 
+            border-radius: 14px; 
             cursor: pointer; 
-            font-size: 16px; 
-            font-weight: 600;
-            transition: background 0.2s;
+            font-size: 18px; 
+            font-weight: 700;
+            transition: background 0.2s, transform 0.1s;
             margin-top: 5px;
         }
 
-        button:hover { 
-            background-color: #1557b0; 
+        button:active {
+            transform: scale(0.98);
         }
 
-        /* Área de Resultados */
-        #resultado {
-            margin-top: 20px;
-        }
-
+        /* Cartões de Resultado */
         .result-card { 
             border: 1px solid #e8eaed; 
-            padding: 18px; 
-            border-radius: 16px; 
-            margin-top: 15px; 
+            padding: 20px; 
+            border-radius: 18px; 
+            margin-top: 20px; 
             background: #ffffff; 
             position: relative; 
             text-align: left; 
-            animation: slideUp 0.3s ease-out;
+            animation: slideUp 0.4s ease-out;
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Barra lateral de sucesso */
         .result-card::before { 
             content: ''; 
             position: absolute; 
             left: 0; 
-            top: 18px; 
-            bottom: 18px; 
-            width: 4px; 
+            top: 20px; 
+            bottom: 20px; 
+            width: 5px; 
             background: var(--success-color); 
             border-radius: 0 4px 4px 0;
         }
 
-        .item { margin-bottom: 12px; }
-        .item:last-child { margin-bottom: 0; }
-
+        .item { margin-bottom: 14px; }
         .label { 
-            font-size: 11px; 
+            font-size: 12px; 
             color: var(--text-light); 
             text-transform: uppercase; 
-            font-weight: 700; 
-            letter-spacing: 0.8px;
+            font-weight: 800; 
+            letter-spacing: 1px;
             display: block; 
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .value { 
-            font-size: 16px; 
+            font-size: 17px; 
             color: var(--text-dark); 
             font-weight: 500; 
             line-height: 1.5;
@@ -164,23 +159,13 @@
 
         hr { border: 0; border-top: 1px solid #f1f3f4; margin: 15px 0; }
 
-        /* Mensagens de Erro e Carregamento */
         .error { 
             color: #d93025; 
             background-color: #fde8e8;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 14px;
             margin-top: 20px; 
-            font-weight: 500; 
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .loading { 
-            color: var(--text-light); 
-            font-size: 14px;
-            font-style: italic; 
-            margin-top: 15px; 
+            font-weight: 600; 
         }
     </style>
 </head>
@@ -188,71 +173,48 @@
 
 <div class="container">
     <div class="logo-wrapper">
-        <img src="empresa.jpg" alt="Logo Empresa" class="logo-topo">
+        <img src="empresa.jpg" alt="Logo da Empresa" class="logo-topo">
     </div>
 
-    <h2>Painel do Motorista</h2>
+    <h2>Painel do Funcionário</h2>
     
     <div class="search-box">
-        <label for="idInput">Seu ID Pessoal</label>
-        <input type="text" id="idInput" placeholder="Digite seu ID (ex: 123)" onkeypress="if(event.key === 'Enter') buscar()">
-        <button onclick="buscar()">Consultar Minha Rota</button>
+        <label for="idInput">Identificação do Motorista</label>
+        <input type="text" id="idInput" placeholder="Digite seu ID" onkeypress="if(event.key === 'Enter') buscar()">
+        <button onclick="buscar()">Consultar Informações</button>
     </div>
 
-    <div id="loadingMsg" class="loading" style="display:none;">Carregando dados...</div>
     <div id="resultado"></div>
 </div>
 
 <script>
     let csvData = [];
 
-    // Função para carregar a planilha automaticamente
     function carregarDados() {
-        const loading = document.getElementById('loadingMsg');
-        loading.style.display = 'block';
-        
         Papa.parse("dados.csv", {
             download: true,
-            header: false, // Lemos por índice [0, 1, 2...]
+            header: false,
             skipEmptyLines: true,
             complete: function(results) {
                 csvData = results.data;
-                loading.style.display = 'none';
-                console.log("Dados da planilha carregados.");
-            },
-            error: function(err) {
-                console.error("Erro ao carregar CSV:", err);
-                loading.style.display = 'none';
-                document.getElementById('resultado').innerHTML = "<div class='error'>Erro: Arquivo 'dados.csv' não encontrado. Verifique se o arquivo está no GitHub.</div>";
             }
         });
     }
 
     function buscar() {
-        const idInput = document.getElementById('idInput');
-        const idBuscado = idInput.value.trim().toLowerCase();
+        const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
         const lista = document.getElementById('resultado');
-        
-        // Esconde o teclado no celular
-        idInput.blur();
-        
         lista.innerHTML = "";
 
-        if (!idBuscado) {
-            alert("Por favor, digite seu ID.");
-            return;
-        }
+        if (!idBuscado) return;
 
-        // Filtra os dados (Coluna A / Índice 0 é o ID)
         const filtrados = csvData.filter((linha, index) => {
-            // Ignora a primeira linha se for o cabeçalho "ID"
             if (index === 0 && linha[0] && linha[0].toString().toLowerCase() === "id") return false;
             return linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
         });
 
         if (filtrados.length > 0) {
             filtrados.forEach(linha => {
-                // Estrutura: 0:ID, 1:ROTA, 2:Cod, 3:Loja, 4:Endereço, 5:Funcionamento, 6:Visita
                 lista.innerHTML += `
                     <div class="result-card">
                         <div class="item">
@@ -268,8 +230,8 @@
                             <span class="value">${linha[4] || '---'}</span>
                         </div>
                         <div class="item">
-                            <span class="label">⏰ Horário de Visita (Previsão)</span>
-                            <span class="value"><strong>${linha[6] || 'A definir'}</strong></span>
+                            <span class="label">⏰ Previsão de Visita</span>
+                            <span class="value" style="color:var(--primary-color); font-size: 19px;"><strong>${linha[6] || 'A definir'}</strong></span>
                         </div>
                         <hr>
                         <div class="item">
@@ -280,11 +242,10 @@
                 `;
             });
         } else {
-            lista.innerHTML = "<div class='error'>ID não encontrado.<br>Verifique se digitou corretamente ou fale com seu supervisor.</div>";
+            lista.innerHTML = "<div class='error'>ID não encontrado.</div>";
         }
     }
 
-    // Inicia o carregamento assim que a página abre
     window.onload = carregarDados;
 </script>
 
