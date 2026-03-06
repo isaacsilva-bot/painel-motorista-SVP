@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Rotas - Motoristas</title>
+    <title>Consulta de Operação</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        h2 { color: #2c3e50; text-align: center; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
-        button { padding: 12px 20px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #219150; }
-        .result-card { border: 1px solid #eee; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; }
-        .result-card b { color: #34495e; }
-        .error { color: #e74c3c; text-align: center; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #2c3e50; text-align: center; margin-top: 0; }
+        .search-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        input { padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.3s; }
+        input:focus { border-color: #3498db; }
+        button { padding: 15px; background-color: #2ecc71; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #27ae60; }
+        .result-card { border-left: 5px solid #3498db; padding: 15px; border-radius: 4px; margin-top: 15px; background: #f9f9f9; line-height: 1.6; }
+        .label { font-weight: bold; color: #7f8c8d; font-size: 12px; text-transform: uppercase; display: block; }
+        .value { color: #2c3e50; font-size: 16px; margin-bottom: 8px; display: block; }
+        .error { color: #e74c3c; text-align: center; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Consulta de Operação</h2>
+    <h2>Painel do Funcionário</h2>
     <div class="search-box">
-        <input type="text" id="motoristaID" placeholder="Digite seu nome ou ID de Motorista">
-        <button onclick="buscarRota()">Consultar</button>
+        <input type="text" id="motoristaID" placeholder="Digite seu ID">
+        <button onclick="buscarRota()">Ver Minha Rota</button>
     </div>
     <div id="resultado"></div>
 </div>
@@ -32,43 +34,57 @@
 <script>
     let dadosOperacao = [];
 
-    // Carrega o CSV automaticamente ao abrir a página
     window.onload = function() {
+        // O PapaParse agora vai tentar detectar automaticamente o separador (; ou ,)
         Papa.parse("dados.csv", {
             download: true,
-            header: true,
+            header: false, // Mudamos para false para evitar erro com nomes de colunas
+            skipEmptyLines: true,
             complete: function(results) {
                 dadosOperacao = results.data;
+                console.log("Dados carregados:", dadosOperacao);
             }
         });
     };
 
     function buscarRota() {
-        const termoBusca = document.getElementById('motoristaID').value.toLowerCase();
+        const termoBusca = document.getElementById('motoristaID').value.trim().toLowerCase();
         const divResultado = document.getElementById('resultado');
         divResultado.innerHTML = "";
 
-        if (!termoBusca) return;
+        if (!termoBusca) {
+            alert("Por favor, digite seu ID");
+            return;
+        }
 
-        const filtrados = dadosOperacao.filter(item => 
-            item.Motorista && item.Motorista.toLowerCase().includes(termoBusca)
-        );
+        // Começamos do 1 para pular o cabeçalho da planilha
+        const filtrados = dadosOperacao.slice(1).filter(linha => {
+            return linha[0] && linha[0].toString().toLowerCase() === termoBusca;
+        });
 
         if (filtrados.length > 0) {
-            filtrados.forEach(info => {
+            filtrados.forEach(linha => {
                 divResultado.innerHTML += `
                     <div class="result-card">
-                        <p><b>Rota:</b> ${info.ROTA}</p>
-                        <p><b>Loja:</b> ${info.Loja}</p>
-                        <p><b>Endereço:</b> ${info.Endereco}</p>
-                        <p><b>Horário de Visita:</b> ${info.Visita}</p>
-                        <hr>
-                        <small>Funcionamento: ${info.Funcionamento}</small>
+                        <span class="label">Rota</span>
+                        <span class="value">${linha[1] || '-'}</span>
+                        
+                        <span class="label">Loja / Ponto</span>
+                        <span class="value">${linha[3] || '-'}</span>
+                        
+                        <span class="label">Endereço</span>
+                        <span class="value">${linha[4] || '-'}</span>
+                        
+                        <span class="label">Horário de Visita</span>
+                        <span class="value">${linha[6] || '-'}</span>
+                        
+                        <hr style="border:0; border-top:1px solid #eee">
+                        <small>Funcionamento: ${linha[5] || '-'}</small>
                     </div>
                 `;
             });
         } else {
-            divResultado.innerHTML = '<p class="error">Nenhuma informação encontrada para este ID.</p>';
+            divResultado.innerHTML = '<p class="error">ID não encontrado. Verifique se digitou corretamente.</p>';
         }
     }
 </script>
