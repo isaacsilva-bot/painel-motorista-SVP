@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Rotas - Motoristas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h2 { color: #2c3e50; text-align: center; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { padding: 12px 20px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #219150; }
+        .result-card { border: 1px solid #eee; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; }
+        .result-card b { color: #34495e; }
+        .error { color: #e74c3c; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Consulta de Operação</h2>
+    <div class="search-box">
+        <input type="text" id="motoristaID" placeholder="Digite seu nome ou ID de Motorista">
+        <button onclick="buscarRota()">Consultar</button>
+    </div>
+    <div id="resultado"></div>
+</div>
+
+<script>
+    let dadosOperacao = [];
+
+    // Carrega o CSV automaticamente ao abrir a página
+    window.onload = function() {
+        Papa.parse("dados.csv", {
+            download: true,
+            header: true,
+            complete: function(results) {
+                dadosOperacao = results.data;
+            }
+        });
+    };
+
+    function buscarRota() {
+        const termoBusca = document.getElementById('motoristaID').value.toLowerCase();
+        const divResultado = document.getElementById('resultado');
+        divResultado.innerHTML = "";
+
+        if (!termoBusca) return;
+
+        const filtrados = dadosOperacao.filter(item => 
+            item.Motorista && item.Motorista.toLowerCase().includes(termoBusca)
+        );
+
+        if (filtrados.length > 0) {
+            filtrados.forEach(info => {
+                divResultado.innerHTML += `
+                    <div class="result-card">
+                        <p><b>Rota:</b> ${info.ROTA}</p>
+                        <p><b>Loja:</b> ${info.Loja}</p>
+                        <p><b>Endereço:</b> ${info.Endereco}</p>
+                        <p><b>Horário de Visita:</b> ${info.Visita}</p>
+                        <hr>
+                        <small>Funcionamento: ${info.Funcionamento}</small>
+                    </div>
+                `;
+            });
+        } else {
+            divResultado.innerHTML = '<p class="error">Nenhuma informação encontrada para este ID.</p>';
+        }
+    }
+</script>
+
+</body>
+</html>
