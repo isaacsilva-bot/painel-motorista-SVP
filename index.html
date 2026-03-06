@@ -3,51 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Operação</title>
+    <title>Consulta de Operação - Motoristas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
-        .search-box { display: flex; flex-direction: column; gap: 12px; }
-        input { padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: #1a73e8; outline: none; }
-        button { padding: 15px; background-color: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; }
-        button:hover { background-color: #1557b0; }
-        .result-card { border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; margin-top: 15px; background: #fff; position: relative; overflow: hidden; }
-        .result-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #34a853; }
-        .item { margin-bottom: 10px; }
-        .label { font-size: 11px; color: #70757a; text-transform: uppercase; font-weight: bold; display: block; }
-        .value { font-size: 15px; color: #202124; font-weight: 500; }
-        .error { color: #d93025; text-align: center; margin-top: 20px; font-weight: 500; }
+        :root {
+            --primary-color: #1a73e8;
+            --success-color: #34a853;
+            --bg-color: #f8f9fa;
+            --text-dark: #202124;
+            --text-light: #70757a;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
+
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            width: 100%; 
+            max-width: 450px; 
+            text-align: center; 
+        }
+        
+        /* Imagem da Logo no Topo */
+        .logo-topo {
+            max-width: 180px;
+            height: auto;
+            margin: 0 auto 25px auto;
+            display: block;
+        }
+
+        h2 { 
+            color: var(--text-dark); 
+            margin-bottom: 25px; 
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .search-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            text-align: left; 
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: -10px;
+            margin-left: 5px;
+        }
+
+        input { 
+            padding: 16px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            transition: all 0.3s;
+            background-color: #fff;
+        }
+
+        input:focus { 
+            border-color: var(--primary-color); 
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+        }
+
+        button { 
+            padding: 16px; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover { 
+            background-color: #1557b0; 
+        }
+
+        /* Cards de Resultado */
+        #resultado {
+            margin-top: 25px;
+        }
+
+        .result-card { 
+            border: 1px solid #e8eaed; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-top: 15px; 
+            background: #ffffff; 
+            position: relative; 
+            text-align: left; 
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card::before { 
+            content: ''; 
+            position: absolute; 
+            left: 0; 
+            top: 20px; 
+            bottom: 20px; 
+            width: 4px; 
+            background: var(--success-color); 
+            border-radius: 0 4px 4px 0;
+        }
+
+        .item { margin-bottom: 12px; }
+        .item:last-child { margin-bottom: 0; }
+
+        .label { 
+            font-size: 11px; 
+            color: var(--text-light); 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            display: block; 
+            margin-bottom: 2px;
+        }
+
+        .value { 
+            font-size: 16px; 
+            color: var(--text-dark); 
+            font-weight: 500; 
+            line-height: 1.4;
+        }
+
+        hr { border: 0; border-top: 1px solid #f1f3f4; margin: 15px 0; }
+
+        .error { 
+            color: #d93025; 
+            background-color: #fde8e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px; 
+            font-weight: 500; 
+        }
+
+        .loading { color: var(--text-light); font-style: italic; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Painel do Motorista</h2>
+    <img src="empresa.jpg" alt="Logo Empresa" class="logo-topo" onerror="this.style.display='none'">
+
+    <h2>Painel do Funcionário</h2>
+    
     <div class="search-box">
-        <input type="text" id="idInput" placeholder="Digite seu ID (ex: 123)">
-        <button onclick="buscar()">Consultar Rota</button>
+        <label for="idInput">Identificação</label>
+        <input type="text" id="idInput" placeholder="Digite seu ID pessoal" onkeypress="if(event.key === 'Enter') buscar()">
+        <button onclick="buscar()">Ver Minhas Informações</button>
     </div>
+
+    <div id="loadingMsg" class="loading" style="display:none;">Carregando dados...</div>
     <div id="resultado"></div>
 </div>
 
 <script>
     let csvData = [];
 
-    // Função que carrega o arquivo
+    // Função para carregar a planilha automaticamente
     function carregarDados() {
+        document.getElementById('loadingMsg').style.display = 'block';
+        
         Papa.parse("dados.csv", {
             download: true,
-            header: false, // Lemos como lista para não depender de nomes de colunas
+            header: false, // Lemos por índice [0, 1, 2...] para evitar erro de nomes
             skipEmptyLines: true,
             complete: function(results) {
                 csvData = results.data;
+                document.getElementById('loadingMsg').style.display = 'none';
                 console.log("Dados carregados com sucesso!");
             },
-            error: function() {
-                document.getElementById('resultado').innerHTML = "<p class='error'>Erro ao carregar arquivo dados.csv</p>";
+            error: function(err) {
+                console.error("Erro ao carregar CSV:", err);
+                document.getElementById('resultado').innerHTML = "<p class='error'>Erro: Arquivo 'dados.csv' não encontrado ou inválido.</p>";
             }
         });
     }
@@ -57,33 +205,53 @@
         const lista = document.getElementById('resultado');
         lista.innerHTML = "";
 
-        if (!idBuscado) return;
+        if (!idBuscado) {
+            alert("Por favor, digite seu ID.");
+            return;
+        }
 
-        // Filtra os dados (Coluna 0 é o ID)
-        // Usamos .filter para caso o ID tenha mais de uma entrega/loja
-        const resultados = csvData.filter(linha => {
+        // Filtra os dados baseando-se na Coluna A (Índice 0)
+        const filtrados = csvData.filter((linha, index) => {
+            // Ignora o cabeçalho se ele for "ID"
+            if (index === 0 && linha[0].toLowerCase() === "id") return false;
             return linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
         });
 
-        if (resultados.length > 0) {
-            resultados.forEach(linha => {
-                // Mapeamento das colunas baseado no que você passou:
-                // 0:ID, 1:ROTA, 2:Cod Cliente, 3:Loja, 4:Endereço, 5:Funcionamento, 6:Visita
+        if (filtrados.length > 0) {
+            filtrados.forEach(linha => {
+                // Estrutura das colunas: 0:ID, 1:ROTA, 2:Cod, 3:Loja, 4:Endereço, 5:Funcionamento, 6:Visita
                 lista.innerHTML += `
                     <div class="result-card">
-                        <div class="item"><span class="label">Rota</span><span class="value">${linha[1] || '---'}</span></div>
-                        <div class="item"><span class="label">Loja</span><span class="value">${linha[3] || '---'}</span></div>
-                        <div class="item"><span class="label">Endereço</span><span class="value">${linha[4] || '---'}</span></div>
-                        <div class="item"><span class="label">Horário Visita</span><span class="value">${linha[6] || '---'}</span></div>
-                        <div class="item"><span class="label">Funcionamento</span><span class="value">${linha[5] || '---'}</span></div>
+                        <div class="item">
+                            <span class="label">📍 Rota Atribuída</span>
+                            <span class="value">${linha[1] || 'Não informada'}</span>
+                        </div>
+                        <div class="item">
+                            <span class="label">🏢 Nome da Loja / Ponto</span>
+                            <span class="value">${linha[3] || '---'}</span>
+                        </div>
+                        <div class="item">
+                            <span class="label">🏠 Endereço Completo</span>
+                            <span class="value">${linha[4] || '---'}</span>
+                        </div>
+                        <div class="item">
+                            <span class="label">⏰ Horário de Visita</span>
+                            <span class="value"><strong>${linha[6] || 'A definir'}</strong></span>
+                        </div>
+                        <hr>
+                        <div class="item">
+                            <span class="label">ℹ️ Funcionamento do Local</span>
+                            <span class="value">${linha[5] || 'Não informado'}</span>
+                        </div>
                     </div>
                 `;
             });
         } else {
-            lista.innerHTML = "<p class='error'>Nenhuma informação para este ID.</p>";
+            lista.innerHTML = "<div class='error'>ID não encontrado. Verifique se digitou corretamente ou procure seu supervisor.</div>";
         }
     }
 
+    // Inicia o carregamento assim que a página abre
     window.onload = carregarDados;
 </script>
 
