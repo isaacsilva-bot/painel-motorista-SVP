@@ -3,31 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minhas Entregas</title>
+    <title>Roteiro de Coletas</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; }
-        .container { max-width: 500px; margin: auto; text-align: center; }
-        .logo { max-width: 120px; margin-bottom: 10px; }
-        .search-box { background: white; padding: 20px; border-radius: 12px; shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 500px; margin: auto; }
+        .header { text-align: center; margin-bottom: 20px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { max-width: 130px; margin-bottom: 10px; }
         
-        /* Estilo dos Cards de Endereço */
-        .card-entrega { background: white; text-align: left; padding: 15px; margin-bottom: 15px; border-radius: 10px; border-left: 6px solid #28a745; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .label { font-size: 11px; color: #888; text-transform: uppercase; font-weight: bold; }
-        .valor { display: block; font-size: 15px; color: #333; margin-bottom: 8px; line-height: 1.4; }
-        .contador { color: #555; margin-bottom: 10px; font-weight: bold; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; background-color: #1a73e8; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        button:active { background-color: #1557b0; }
+
+        #resultado { margin-top: 20px; }
+        .resumo { font-weight: bold; margin-bottom: 15px; color: #5f6368; text-align: center; }
+        
+        /* Card de cada Loja */
+        .card-entrega { background: white; padding: 18px; margin-bottom: 15px; border-radius: 12px; border-left: 8px solid #1a73e8; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .campo { margin-bottom: 10px; border-bottom: 1px solid #f1f3f4; padding-bottom: 5px; }
+        .campo:last-child { border-bottom: none; }
+        
+        .label { font-size: 10px; color: #70757a; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
+        .valor { display: block; font-size: 15px; color: #202124; margin-top: 2px; line-height: 1.4; }
+        
+        /* Destaque para Pacotes */
+        .pacotes-box { background: #e8f0fe; padding: 8px; border-radius: 6px; margin-top: 5px; }
+        .pacotes-valor { font-weight: bold; color: #1a73e8; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <img src="empresa.jpg" alt="Logo" class="logo">
-    
-    <div class="search-box">
-        <h3>Consultar Roteiro</h3>
-        <input type="text" id="inputID" placeholder="Digite seu ID do Motorista">
-        <button onclick="consultar()">VER MEU ROTEIRO</button>
+    <div class="header">
+        <img src="empresa.jpg" alt="Logo da Empresa" class="logo">
+        <h2 style="margin:0;">Minhas Coletas</h2>
+        <input type="text" id="inputID" placeholder="Digite seu ID">
+        <button onclick="consultar()">ATUALIZAR ROTEIRO</button>
     </div>
 
     <div id="resultado"></div>
@@ -39,53 +49,62 @@
         const display = document.getElementById('resultado');
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
 
-        if (!idBuscado) return alert("Por favor, digite seu ID.");
+        if (!idBuscado) return;
 
-        display.innerHTML = "Carregando roteiro...";
+        display.innerHTML = "<p style='text-align:center;'>Buscando informações...</p>";
 
         try {
             const response = await fetch(url);
             const csvText = await response.text();
             
-            // Converte CSV para Array
+            // Tratamento de CSV (linhas e colunas)
             const linhas = csvText.split(/\r?\n/).map(l => l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
             
             const cabecalho = linhas[0];
             const idxID = cabecalho.indexOf("ID do motorista");
 
-            // FILTRA TODOS os registros que possuem esse ID
-            const registros = linhas.filter(l => l[idxID] === idBuscado);
+            // Filtra todos os registros do motorista
+            const meusRegistros = linhas.filter(l => l[idxID] === idBuscado);
 
-            if (registros.length > 0) {
-                let html = `<div class="contador">Foram encontrados ${registros.length} endereços:</div>`;
+            if (meusRegistros.length > 0) {
+                let html = `<div class="resumo">Você tem ${meusRegistros.length} paradas hoje</div>`;
                 
-                registros.forEach(dados => {
+                meusRegistros.forEach(dados => {
                     html += `<div class="card-entrega">`;
+                    
                     cabecalho.forEach((col, i) => {
-                        // Filtramos para mostrar apenas o que você pediu
                         const colunasDesejadas = [
                             "Loja / Ponto de Coleta", 
                             "Horário de Visita Programado", 
                             "Horário de Funcionamento até", 
-                            "Endereço Completo"
+                            "Endereço Completo",
+                            "Pacotes Coletados"
                         ];
                         
                         if (colunasDesejadas.includes(col)) {
-                            html += `<div>
-                                        <span class="label">${col}</span>
-                                        <span class="valor">${dados[i] || 'Não informado'}</span>
-                                     </div>`;
+                            // Se for a coluna de pacotes, damos um destaque visual
+                            if (col === "Pacotes Coletados") {
+                                html += `<div class="campo pacotes-box">
+                                            <span class="label">${col}</span>
+                                            <span class="valor pacotes-valor">${dados[i] || '0'}</span>
+                                         </div>`;
+                            } else {
+                                html += `<div class="campo">
+                                            <span class="label">${col}</span>
+                                            <span class="valor">${dados[i] || '---'}</span>
+                                         </div>`;
+                            }
                         }
                     });
                     html += `</div>`;
                 });
                 display.innerHTML = html;
             } else {
-                display.innerHTML = "<p style='color:red;'>Nenhum endereço encontrado para este ID.</p>";
+                display.innerHTML = "<p style='color:red; text-align:center;'>Nenhum dado encontrado para este ID.</p>";
             }
 
         } catch (error) {
-            display.innerHTML = "Erro ao carregar dados. Verifique sua internet.";
+            display.innerHTML = "<p style='text-align:center;'>Erro de conexão. Tente novamente.</p>";
         }
     }
 </script>
