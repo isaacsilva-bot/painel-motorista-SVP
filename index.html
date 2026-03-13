@@ -3,64 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Motorista</title>
+    <title>Consulta Motorista</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .logo { width: 120px; margin-bottom: 15px; border-radius: 10px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        #resultado { margin-top: 20px; text-align: left; font-size: 14px; }
-        .item { background: #f9f9f9; padding: 8px; border-bottom: 1px solid #eee; }
-        .label { font-weight: bold; color: #555; display: block; font-size: 11px; text-transform: uppercase; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; max-width: 400px; text-align: center; }
+        .logo { max-width: 140px; margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #1d4ed8; }
+        #resultado { margin-top: 20px; text-align: left; border-top: 1px solid #eee; }
+        .info-box { background: #f8fafc; padding: 10px; margin-top: 8px; border-left: 4px solid #2563eb; border-radius: 4px; }
+        .label { font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .valor { display: block; font-size: 15px; color: #1e293b; margin-top: 2px; }
+        .error { color: #dc2626; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="empresa.jpg" alt="Logo" class="logo">
-    <h3>Painel do Colaborador</h3>
-    <input type="text" id="idInput" placeholder="Digite seu ID EXATO">
-    <button onclick="buscar()">BUSCAR INFORMAÇÕES</button>
+    <img src="empresa.jpg" alt="Logo da Empresa" class="logo">
+    <h2>Minha Rota</h2>
+    <p style="font-size: 14px; color: #666;">Insira seu ID para consultar os horários</p>
+    
+    <input type="text" id="inputID" placeholder="Ex: 102030">
+    <button onclick="consultar()">BUSCAR DADOS</button>
+
     <div id="resultado"></div>
 </div>
 
 <script>
-    async function buscar() {
-        const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
-        const divFina = document.getElementById('resultado');
+    async function consultar() {
+        const idBuscado = document.getElementById('inputID').value.trim();
+        const display = document.getElementById('resultado');
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
 
-        if(!idBuscado) return alert("Digite um ID");
+        if (!idBuscado) {
+            alert("Por favor, informe seu ID.");
+            return;
+        }
 
-        divFina.innerHTML = "Pesquisando...";
+        display.innerHTML = "<p>Buscando na base de dados...</p>";
 
         try {
-            const resp = await fetch(url);
-            const csv = await resp.text();
+            const response = await fetch(url);
+            const csvText = await response.text();
             
-            // Divide as linhas e remove aspas extras que o Google coloca
-            const linhas = csv.split(/\r?\n/).map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+            // Divide as linhas tratando possíveis aspas no CSV do Google
+            const linhas = csvText.split(/\r?\n/).map(l => l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
+            
             const cabecalho = linhas[0];
-            
-            // BUSCA EM TODAS AS COLUNAS (Mais seguro)
-            const achado = linhas.slice(1).find(linha => 
-                linha.some(celula => celula.toLowerCase() === idBuscado)
-            );
+            // Encontra o índice da coluna do ID do motorista
+            const idxID = cabecalho.indexOf("ID do motorista");
 
-            if (achado) {
-                let html = "<div style='margin-bottom:10px; color:green;'><b>Sucesso!</b></div>";
-                cabecalho.forEach((tit, i) => {
-                    if(achado[i]) {
-                        html += `<div class="item"><span class="label">${tit}</span> ${achado[i]}</div>`;
-                    }
-                });
-                divFina.innerHTML = html;
-            } else {
-                divFina.innerHTML = "<b style='color:red;'>ID não encontrado. Verifique se digitou corretamente (Maiúsculas/Minúsculas importam).</b>";
+            if (idxID === -1) {
+                display.innerHTML = "<p class='error'>Erro: Coluna 'ID do motorista' não encontrada na planilha.</p>";
+                return;
             }
-        } catch (e) {
-            divFina.innerHTML = "Erro ao conectar com a planilha.";
+
+            // Filtra as linhas onde o ID bate
+            const resultados = linhas.filter(l => l[idxID] === idBuscado);
+
+            if (resultados.length > 0) {
+                let html = `<p style="color:green; font-weight:bold;">${resultados.length} registro(s) encontrado(s):</p>`;
+                
+                resultados.forEach(dados => {
+                    html += `<div class="info-box">`;
+                    cabecalho.forEach((col, i) => {
+                        // Exibe apenas as colunas que você mencionou para ficar limpo
+                        if (["Loja / Ponto de Coleta", "Horário de Visita Programado", "Horário de Funcionamento até", "Endereço Completo"].includes(col)) {
+                            html += `<span class="label">${col}</span>
+                                     <span class="valor">${dados[i] || '---'}</span><br>`;
+                        }
+                    });
+                    html += `</div>`;
+                });
+                display.innerHTML = html;
+            } else {
+                display.innerHTML = `<p class="error">ID "${idBuscado}" não encontrado.<br><small>Dica: Verifique se há zeros à esquerda ou espaços.</small></p>`;
+            }
+
+        } catch (error) {
+            display.innerHTML = "<p class='error'>Erro ao conectar com o Google Sheets.</p>";
+            console.error(error);
         }
     }
 </script>
