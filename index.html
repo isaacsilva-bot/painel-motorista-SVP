@@ -1,37 +1,68 @@
-function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('Index');
-}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Funcionário</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        img { max-width: 150px; margin-bottom: 20px; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #resultado { margin-top: 20px; text-align: left; border-top: 1px solid #eee; padding-top: 10px; }
+        .info-item { margin-bottom: 8px; font-size: 14px; }
+        b { color: #333; }
+    </style>
+</head>
+<body>
 
-function buscarDadosMotorista(idDigitado) {
-  // URL do CSV que você enviou
-  var urlCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
-  
-  try {
-    var resposta = UrlFetchApp.fetch(urlCsv);
-    var conteudo = resposta.getContentText();
-    var dados = Utilities.parseCsv(conteudo);
-    
-    // O ID digitado pelo motorista
-    var idBusca = idDigitado.toString().trim();
+<div class="container">
+    <img src="empresa.jpg" alt="Logo da Empresa">
+    <h2>Consulta de Motorista</h2>
+    <input type="text" id="idMotorista" placeholder="Digite seu ID Pessoal">
+    <button onclick="buscarDados()">Pesquisar</button>
 
-    for (var i = 1; i < dados.length; i++) {
-      // Coluna B (índice 1) é o pickup_driver_id
-      var idPlanilha = dados[i][1].toString().trim();
-      
-      if (idPlanilha == idBusca) {
-        return {
-          status: "Sucesso",
-          loja: "Loja / Ponto de Coleta: " + dados[i][0],      // Coluna A
-          horario: "Horário de Visita Programado: " + dados[i][4], // Coluna E
-          funcionamento: "Horário de Funcionamento até: 22:00",  // Padrão
-          endereco: "Endereço Completo: " + (dados[i][10] || "Rota: " + dados[i][2]) // Coluna K ou C
-        };
-      }
+    <div id="resultado"></div>
+</div>
+
+<script>
+    async function buscarDados() {
+        const idBuscado = document.getElementById('idMotorista').value.trim();
+        const resultadoDiv = document.getElementById('resultado');
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
+
+        if (!idBuscado) {
+            alert("Por favor, digite um ID.");
+            return;
+        }
+
+        resultadoDiv.innerHTML = "Buscando...";
+
+        try {
+            const response = await fetch(url);
+            const data = await response.text();
+            const linhas = data.split('\n').map(linha => linha.split(','));
+            
+            // Assume-se que a primeira coluna (índice 0) é o ID
+            const cabecalho = linhas[0];
+            const dadosMotorista = linhas.find(linha => linha[0].trim() === idBuscado);
+
+            if (dadosMotorista) {
+                let html = "<h3>Dados Encontrados:</h3>";
+                cabecalho.forEach((coluna, index) => {
+                    html += `<div class='info-item'><b>${coluna}:</b> ${dadosMotorista[index]}</div>`;
+                });
+                resultadoDiv.innerHTML = html;
+            } else {
+                resultadoDiv.innerHTML = "<p style='color:red;'>ID não encontrado.</p>";
+            }
+        } catch (error) {
+            resultadoDiv.innerHTML = "Erro ao carregar dados. Verifique a conexão.";
+            console.error(error);
+        }
     }
-    
-    return { status: "Erro", mensagem: "ID " + idBusca + " não encontrado." };
-    
-  } catch (e) {
-    return { status: "Erro", mensagem: "Erro ao ler planilha: " + e.toString() };
-  }
-}
+</script>
+
+</body>
+</html>
