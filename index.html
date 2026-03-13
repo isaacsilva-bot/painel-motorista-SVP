@@ -1,224 +1,31 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Motorista - SVP</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <style>
-        :root {
-            --primary-orange: #ff6600; 
-            --dark-orange: #e65c00;
-            --bg-gray: #f4f4f9;
-            --text-main: #333;
-        }
+function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('Index');
+}
 
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg-gray); 
-            margin: 0; 
-            padding: 15px; 
-            display: flex; 
-            justify-content: center; 
-        }
-
-        .container { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 480px; 
-            text-align: center; 
-        }
-        
-        .logo-wrapper {
-            width: 100%;
-            margin: 10px 0 25px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .logo-topo {
-            width: 100%; 
-            max-width: 420px; 
-            height: auto;
-            display: block;
-            image-rendering: -webkit-optimize-contrast;
-        }
-
-        h2 { 
-            color: var(--text-main); 
-            margin-bottom: 25px;
-            font-size: 22px;
-            border-bottom: 3px solid var(--primary-orange);
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-
-        .search-box { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            text-align: left; 
-        }
-
-        label {
-            font-weight: bold;
-            color: var(--primary-orange);
-            font-size: 14px;
-            margin-left: 5px;
-        }
-
-        input { 
-            padding: 18px; 
-            border: 2px solid #ddd; 
-            border-radius: 12px; 
-            font-size: 18px; 
-            outline: none;
-        }
-
-        input:focus { border-color: var(--primary-orange); }
-
-        button { 
-            padding: 18px; 
-            background-color: var(--primary-orange); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-size: 20px; 
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        button:hover { background-color: var(--dark-orange); }
-
-        .result-card { 
-            border: 1px solid #eee;
-            border-left: 6px solid var(--primary-orange); 
-            padding: 20px; 
-            border-radius: 12px; 
-            margin-top: 20px; 
-            background: #fff; 
-            text-align: left;
-        }
-
-        .label { 
-            font-size: 11px; 
-            color: #888; 
-            font-weight: bold; 
-            text-transform: uppercase; 
-            display: block; 
-            margin-bottom: 3px;
-        }
-
-        .value { 
-            font-size: 17px; 
-            color: #222; 
-            margin-bottom: 12px; 
-            display: block; 
-            font-weight: 500;
-        }
-
-        .destaque {
-            color: var(--primary-orange);
-            font-weight: bold;
-            font-size: 19px;
-        }
-
-        /* Estilo específico para Observações */
-        .obs-box {
-            background-color: #fffaf5;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px dashed var(--primary-orange);
-            margin-top: 10px;
-        }
-
-        .error { 
-            color: #d93025; 
-            background: #fff0f0; 
-            padding: 15px; 
-            border-radius: 10px; 
-            margin-top: 20px; 
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="logo-wrapper">
-        <img src="empresa.jpg" alt="Logo SVP" class="logo-topo">
-    </div>
-
-    <h2>Verificação do Horário de Atendimento dos Pontos de Coleta</h2>
+function buscarDadosMotorista(idDigitado) {
+  // ID da sua planilha extraído do link que você enviou
+  var sheetId = "1Q6R_D2zDSCRfKW7kHj8rHHT5ttj4c6YP2hPLhSA3Q4c";
+  var ss = SpreadsheetApp.openById(sheetId);
+  var sheet = ss.getSheets()[0]; // Considera a primeira aba da planilha
+  var dados = sheet.getDataRange().getValues();
+  
+  // Mapeamento das colunas conforme sua solicitação:
+  // Coluna B (índice 1): pickup_driver_id
+  // Coluna A (índice 0): shop_id (Loja)
+  // Coluna E (índice 4): pickup_start_datestamp (Horário Programado)
+  
+  for (var i = 1; i < dados.length; i++) {
+    var idMotoristaNaPlanilha = dados[i][1].toString().trim();
     
-    <div class="search-box">
-        <label>IDENTIFICAÇÃO</label>
-        <input type="text" id="idInput" placeholder="Digite seu ID" onkeypress="if(event.key === 'Enter') buscar()">
-        <button onclick="buscar()">CONSULTAR ROTA</button>
-    </div>
-
-    <div id="resultado"></div>
-</div>
-
-<script>
-    let csvData = [];
-
-    window.onload = function() {
-        Papa.parse("dados.csv", {
-            download: true,
-            header: false,
-            skipEmptyLines: true,
-            complete: function(results) { csvData = results.data; }
-        });
-    };
-
-    function buscar() {
-        const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
-        const lista = document.getElementById('resultado');
-        lista.innerHTML = "";
-        
-        if (!idBuscado) return;
-
-        const filtrados = csvData.filter((linha, index) => {
-            return index > 0 && linha[0] && linha[0].toString().trim().toLowerCase() === idBuscado;
-        });
-
-        if (filtrados.length > 0) {
-            filtrados.forEach(linha => {
-                lista.innerHTML += `
-                    <div class="result-card">
-                        <span class="label">📍 Rota Atribuída</span>
-                        <span class="value">${linha[1] || '-'}</span>
-                        
-                        <span class="label">🏢 Nome da Loja</span>
-                        <span class="value">${linha[3] || '-'}</span>
-                        
-                        <span class="label">🏠 Endereço</span>
-                        <span class="value">${linha[4] || '-'}</span>
-                        
-                        <span class="label">⏰ Previsão de Visita</span>
-                        <span class="value destaque">${linha[6] || '-'}</span>
-                        
-                        <hr style="border:0; border-top: 1px solid #eee; margin: 10px 0;">
-                        
-                        <span class="label">🕒 Funcionamento</span>
-                        <span class="value" style="font-size:14px;">${linha[5] || '-'}</span>
-
-                        <div class="obs-box">
-                            <span class="label" style="color:var(--primary-orange)">📝 Observações:</span>
-                            <span class="value" style="font-size:15px; margin-bottom:0;">${linha[7] || 'Nenhuma observação informada.'}</span>
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            lista.innerHTML = "<div class='error'>ID não encontrado. Talves você não tenha pontos de coleta atribuído ou seu ID esteja errado.</div>";
-        }
+    if (idMotoristaNaPlanilha == idDigitado.toString().trim()) {
+      return {
+        loja: "Loja/Ponto: " + dados[i][0],
+        horario: "Horário Programado: " + Utilities.formatDate(new Date(dados[i][4]), "GMT-3", "dd/MM/yyyy HH:mm"),
+        funcionamento: "Funcionamento até: 22:00", // Exemplo, ajuste se houver coluna de horário
+        endereco: "Endereço: " + (dados[i][10] || "Consultar no mapa"), // Ajustado para coluna de rota/endereço
+        status: "Sucesso"
+      };
     }
-</script>
-</body>
-</html>
+  }
+  return { status: "Erro", mensagem: "ID do motorista não encontrado." };
+}
