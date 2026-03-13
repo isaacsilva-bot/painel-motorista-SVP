@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Coletas - Motorista</title>
+    <title>Painel do Motorista</title>
     <style>
         :root {
             --primary-orange: #ff6600;
@@ -13,31 +13,38 @@
 
         body { 
             font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: #fdfdfd; 
+            background-color: #f8f9fa; 
             margin: 0; 
-            padding: 15px; 
+            padding: 10px; 
             color: #333; 
         }
 
         .container { max-width: 500px; margin: auto; }
 
-        /* Cabeçalho */
-        .header { 
-            text-align: center; 
-            margin-bottom: 25px; 
+        /* Card Principal de Busca */
+        .header-card { 
             background: white; 
-            padding: 25px; 
             border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.1); 
-            border-bottom: 4px solid var(--primary-orange);
+            overflow: hidden; /* Faz a imagem respeitar o arredondamento */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
 
-        .logo { max-width: 140px; margin-bottom: 15px; border-radius: 10px; }
-        
-        h2 { color: var(--dark-orange); margin: 0; font-size: 22px; }
+        /* Imagem preenchendo toda a largura */
+        .img-banner { 
+            width: 100%; 
+            display: block; 
+            max-height: 250px; /* Ajuste a altura conforme necessário */
+            object-fit: cover; /* Garante que a imagem não distorça */
+        }
 
-        /* Campo de Busca */
-        .search-area { margin-top: 20px; }
+        .search-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        h2 { color: var(--dark-orange); margin: 0 0 10px 0; font-size: 24px; }
+        
         input { 
             width: 100%; 
             padding: 15px; 
@@ -47,7 +54,6 @@
             box-sizing: border-box; 
             font-size: 16px;
             outline: none;
-            transition: 0.3s;
         }
         input:focus { border-color: var(--primary-orange); }
 
@@ -62,90 +68,54 @@
             cursor: pointer; 
             font-size: 16px;
             text-transform: uppercase;
-            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);
         }
-        button:active { transform: scale(0.98); background-color: var(--dark-orange); }
 
-        /* Estilo dos Cards */
-        .resumo { 
-            font-weight: bold; 
-            margin: 20px 0 10px; 
-            color: #666; 
-            text-align: center;
-            font-size: 14px;
-        }
+        /* Cards de Resultado */
+        .resumo { text-align: center; font-weight: bold; color: #666; margin: 20px 0; }
 
         .card-entrega { 
             background: white; 
             padding: 20px; 
-            margin-bottom: 20px; 
+            margin-bottom: 15px; 
             border-radius: 18px; 
             position: relative;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-            border: 1px solid #f0f0f0;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border-left: 8px solid var(--primary-orange);
         }
 
-        .card-entrega::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 20px; bottom: 20px;
-            width: 5px;
-            background: var(--primary-orange);
-            border-radius: 0 5px 5px 0;
-        }
+        .label { font-size: 10px; color: var(--primary-orange); text-transform: uppercase; font-weight: 800; display: block; }
+        .valor { font-size: 15px; color: #222; font-weight: 500; margin-bottom: 10px; display: block; }
 
-        .campo { margin-bottom: 12px; }
-        .label { 
-            font-size: 10px; 
-            color: var(--primary-orange); 
-            text-transform: uppercase; 
-            font-weight: 800;
-            display: block;
-            margin-bottom: 2px;
-        }
-        .valor { font-size: 15px; color: #222; font-weight: 500; line-height: 1.4; }
-
-        /* Destaque para Pacotes */
         .pacotes-tag {
             background: var(--light-orange);
             color: var(--dark-orange);
-            padding: 10px;
+            padding: 12px;
             border-radius: 10px;
-            display: inline-block;
-            width: 100%;
-            box-sizing: border-box;
             text-align: center;
             font-weight: bold;
             border: 1px dashed var(--primary-orange);
         }
 
-        /* Botão do Mapa */
         .btn-mapa {
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 5px;
             color: var(--primary-orange);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
-            border: 1px solid var(--primary-orange);
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: 0.3s;
         }
-        .btn-mapa:hover { background: var(--primary-orange); color: white; }
-
-        .error { color: #d32f2f; text-align: center; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <img src="empresa.jpg" alt="Logo" class="logo">
-        <h2>Painel do Motorista</h2>
-        <div class="search-area">
-            <input type="text" id="inputID" placeholder="Seu ID Pessoal">
-            <button onclick="consultar()">Consultar Rota</button>
+    <div class="header-card">
+        <img src="empresa.jpg" alt="Banner Empresa" class="img-banner">
+        
+        <div class="search-content">
+            <h2>Portal Logístico</h2>
+            <input type="text" id="inputID" placeholder="Digite seu ID">
+            <button onclick="consultar()">Ver Roteiro</button>
         </div>
     </div>
 
@@ -159,53 +129,42 @@
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
 
         if (!idBuscado) return;
-
-        display.innerHTML = "<p style='text-align:center;'>Carregando roteiro...</p>";
+        display.innerHTML = "<p style='text-align:center;'>Buscando...</p>";
 
         try {
             const response = await fetch(url);
             const csvText = await response.text();
-            
-            // Quebra as linhas e as colunas (respeitando aspas)
             const linhas = csvText.split(/\r?\n/).map(l => l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim()));
             
             const cabecalho = linhas[0];
             const idxID = cabecalho.indexOf("ID do motorista");
-
             const meusRegistros = linhas.filter(l => l[idxID] === idBuscado);
 
             if (meusRegistros.length > 0) {
-                let html = `<div class="resumo">${meusRegistros.length} PARADAS ENCONTRADAS</div>`;
-                
+                let html = `<div class="resumo">${meusRegistros.length} PARADAS PARA HOJE</div>`;
                 meusRegistros.forEach(dados => {
                     html += `<div class="card-entrega">`;
-                    
                     cabecalho.forEach((col, i) => {
                         const valor = dados[i] || '---';
-                        
                         if (col === "Loja / Ponto de Coleta") {
-                            html += `<div class="campo"><span class="label">Ponto de Coleta</span><span class="valor" style="font-size:18px; font-weight:bold; color:var(--dark-orange);">${valor}</span></div>`;
-                        }
-                        else if (col === "Horário de Visita Programado" || col === "Horário de Funcionamento até") {
-                            html += `<div class="campo" style="display:inline-block; width:48%;"><span class="label">${col}</span><span class="valor">${valor}</span></div>`;
-                        }
-                        else if (col === "Endereço Completo") {
-                            html += `<div class="campo"><span class="label">Endereço</span><span class="valor">${valor}</span>
-                                     <a href="https://www.google.com/maps/search/${encodeURIComponent(valor)}" target="_blank" class="btn-mapa">📍 Abrir no Mapa</a></div>`;
-                        }
-                        else if (col === "Pacotes Coletados") {
-                            html += `<div class="pacotes-tag"><span style="font-size:11px; text-transform:uppercase;">Pacotes:</span> <span style="font-size:20px;">${valor}</span></div>`;
+                            html += `<span class="label">Ponto</span><span class="valor" style="color:var(--dark-orange); font-weight:bold;">${valor}</span>`;
+                        } else if (col === "Endereço Completo") {
+                            html += `<span class="label">Endereço</span><span class="valor">${valor}</span>
+                                     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(valor)}" target="_blank" class="btn-mapa">📍 Abrir no GPS</a>`;
+                        } else if (col === "Pacotes Coletados") {
+                            html += `<div class="pacotes-tag">Pacotes: ${valor}</div>`;
+                        } else if (["Horário de Visita Programado", "Horário de Funcionamento até"].includes(col)) {
+                            html += `<span class="label">${col}</span><span class="valor">${valor}</span>`;
                         }
                     });
                     html += `</div>`;
                 });
                 display.innerHTML = html;
             } else {
-                display.innerHTML = "<p class='error'>Nenhum roteiro disponível para este ID.</p>";
+                display.innerHTML = "<p style='text-align:center; color:red; font-weight:bold;'>ID não encontrado.</p>";
             }
-
-        } catch (error) {
-            display.innerHTML = "<p class='error'>Falha na conexão.</p>";
+        } catch (e) {
+            display.innerHTML = "<p style='text-align:center;'>Erro de conexão.</p>";
         }
     }
 </script>
