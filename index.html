@@ -1,31 +1,47 @@
-function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('Index');
+function buscarDadosMotorista(idDigitado) {
+  // 1. URL de publicação em CSV que você forneceu
+  var urlCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
+  
+  try {
+    // 2. Busca os dados da planilha publicada
+    var resposta = UrlFetchApp.fetch(urlCsv);
+    var conteudo = resposta.getContentText();
+    var dados = Utilities.parseCsv(conteudo);
+    
+    // 3. Mapeamento das colunas baseado na sua planilha atual:
+    // Coluna A (0) = shop_id (Loja)
+    // Coluna B (1) = pickup_driver_id (ID do motorista)
+    // Coluna E (4) = pickup_start_datestamp (Horário Programado)
+    // Coluna K (10) = pickup_route_id (Usaremos como Endereço/Rota por enquanto)
+
+    for (var i = 1; i < dados.length; i++) {
+      var idPlanilha = dados[i][1].toString().trim();
+      
+      if (idPlanilha == idDigitado.toString().trim()) {
+        return {
+          status: "Sucesso",
+          loja: "Loja / Ponto de Coleta: " + dados[i][0],
+          horario: "Horário de Visita Programado: " + formatarData(dados[i][4]),
+          funcionamento: "Horário de Funcionamento até: 22:00", // Ajuste se houver coluna específica
+          endereco: "Endereço Completo: " + (dados[i][10] || "Rota " + dados[i][2])
+        };
+      }
+    }
+    
+    return { status: "Erro", mensagem: "ID " + idDigitado + " não encontrado nesta lista." };
+    
+  } catch (e) {
+    return { status: "Erro", mensagem: "Erro ao acessar a planilha: " + e.toString() };
+  }
 }
 
-function buscarDadosMotorista(idDigitado) {
-  // ID da sua planilha extraído do link que você enviou
-  var sheetId = "1Q6R_D2zDSCRfKW7kHj8rHHT5ttj4c6YP2hPLhSA3Q4c";
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheets()[0]; // Considera a primeira aba da planilha
-  var dados = sheet.getDataRange().getValues();
-  
-  // Mapeamento das colunas conforme sua solicitação:
-  // Coluna B (índice 1): pickup_driver_id
-  // Coluna A (índice 0): shop_id (Loja)
-  // Coluna E (índice 4): pickup_start_datestamp (Horário Programado)
-  
-  for (var i = 1; i < dados.length; i++) {
-    var idMotoristaNaPlanilha = dados[i][1].toString().trim();
-    
-    if (idMotoristaNaPlanilha == idDigitado.toString().trim()) {
-      return {
-        loja: "Loja/Ponto: " + dados[i][0],
-        horario: "Horário Programado: " + Utilities.formatDate(new Date(dados[i][4]), "GMT-3", "dd/MM/yyyy HH:mm"),
-        funcionamento: "Funcionamento até: 22:00", // Exemplo, ajuste se houver coluna de horário
-        endereco: "Endereço: " + (dados[i][10] || "Consultar no mapa"), // Ajustado para coluna de rota/endereço
-        status: "Sucesso"
-      };
-    }
+// Função auxiliar para deixar a data legível
+function formatarData(dataRaw) {
+  if (!dataRaw) return "Não informado";
+  try {
+    var d = new Date(dataRaw);
+    return Utilities.formatDate(d, "GMT-3", "dd/MM/yyyy HH:mm");
+  } catch(e) {
+    return dataRaw;
   }
-  return { status: "Erro", mensagem: "ID do motorista não encontrado." };
 }
