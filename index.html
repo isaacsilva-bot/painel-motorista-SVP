@@ -3,63 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Funcionário</title>
+    <title>Consulta de Motorista</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        img { max-width: 150px; margin-bottom: 20px; }
-        input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #resultado { margin-top: 20px; text-align: left; border-top: 1px solid #eee; padding-top: 10px; }
-        .info-item { margin-bottom: 8px; font-size: 14px; }
-        b { color: #333; }
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .logo { width: 120px; margin-bottom: 15px; border-radius: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #resultado { margin-top: 20px; text-align: left; font-size: 14px; }
+        .item { background: #f9f9f9; padding: 8px; border-bottom: 1px solid #eee; }
+        .label { font-weight: bold; color: #555; display: block; font-size: 11px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <img src="empresa.jpg" alt="Logo da Empresa">
-    <h2>Consulta de Motorista</h2>
-    <input type="text" id="idMotorista" placeholder="Digite seu ID Pessoal">
-    <button onclick="buscarDados()">Pesquisar</button>
-
+<div class="card">
+    <img src="empresa.jpg" alt="Logo" class="logo">
+    <h3>Painel do Colaborador</h3>
+    <input type="text" id="idInput" placeholder="Digite seu ID EXATO">
+    <button onclick="buscar()">BUSCAR INFORMAÇÕES</button>
     <div id="resultado"></div>
 </div>
 
 <script>
-    async function buscarDados() {
-        const idBuscado = document.getElementById('idMotorista').value.trim();
-        const resultadoDiv = document.getElementById('resultado');
+    async function buscar() {
+        const idBuscado = document.getElementById('idInput').value.trim().toLowerCase();
+        const divFina = document.getElementById('resultado');
         const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLptCJKIUDiCVR440Z6ZaJxzvRB1WJeCV36OJfnTQ2nBLECWjlZOqslbedcybCY-4cUQSDmNOCEx0U/pub?gid=1606207890&single=true&output=csv";
 
-        if (!idBuscado) {
-            alert("Por favor, digite um ID.");
-            return;
-        }
+        if(!idBuscado) return alert("Digite um ID");
 
-        resultadoDiv.innerHTML = "Buscando...";
+        divFina.innerHTML = "Pesquisando...";
 
         try {
-            const response = await fetch(url);
-            const data = await response.text();
-            const linhas = data.split('\n').map(linha => linha.split(','));
+            const resp = await fetch(url);
+            const csv = await resp.text();
             
-            // Assume-se que a primeira coluna (índice 0) é o ID
+            // Divide as linhas e remove aspas extras que o Google coloca
+            const linhas = csv.split(/\r?\n/).map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
             const cabecalho = linhas[0];
-            const dadosMotorista = linhas.find(linha => linha[0].trim() === idBuscado);
+            
+            // BUSCA EM TODAS AS COLUNAS (Mais seguro)
+            const achado = linhas.slice(1).find(linha => 
+                linha.some(celula => celula.toLowerCase() === idBuscado)
+            );
 
-            if (dadosMotorista) {
-                let html = "<h3>Dados Encontrados:</h3>";
-                cabecalho.forEach((coluna, index) => {
-                    html += `<div class='info-item'><b>${coluna}:</b> ${dadosMotorista[index]}</div>`;
+            if (achado) {
+                let html = "<div style='margin-bottom:10px; color:green;'><b>Sucesso!</b></div>";
+                cabecalho.forEach((tit, i) => {
+                    if(achado[i]) {
+                        html += `<div class="item"><span class="label">${tit}</span> ${achado[i]}</div>`;
+                    }
                 });
-                resultadoDiv.innerHTML = html;
+                divFina.innerHTML = html;
             } else {
-                resultadoDiv.innerHTML = "<p style='color:red;'>ID não encontrado.</p>";
+                divFina.innerHTML = "<b style='color:red;'>ID não encontrado. Verifique se digitou corretamente (Maiúsculas/Minúsculas importam).</b>";
             }
-        } catch (error) {
-            resultadoDiv.innerHTML = "Erro ao carregar dados. Verifique a conexão.";
-            console.error(error);
+        } catch (e) {
+            divFina.innerHTML = "Erro ao conectar com a planilha.";
         }
     }
 </script>
