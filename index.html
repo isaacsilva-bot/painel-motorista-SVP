@@ -113,7 +113,7 @@
         <img src="empresa.jpg" alt="Banner Empresa" class="img-banner">
         
         <div class="search-content">
-            <h2>Portal Logístico</h2>
+            <h2>Portal de Fechamento de Ponto/ Agencia</h2>
             <input type="text" id="inputID" placeholder="Digite seu ID">
             <button onclick="consultar()">Ver Roteiro</button>
         </div>
@@ -141,7 +141,7 @@
             const meusRegistros = linhas.filter(l => l[idxID] === idBuscado);
 
             if (meusRegistros.length > 0) {
-                let html = `<div class="resumo">${meusRegistros.length} PARADAS PARA HOJE</div>`;
+                let html = `<div class="resumo">${meusRegistros.length} FECHAMENTOS PROGRAMADOS PARA ESTE SÁBADO</div>`;
                 meusRegistros.forEach(dados => {
                     html += `<div class="card-entrega">`;
                     cabecalho.forEach((col, i) => {
